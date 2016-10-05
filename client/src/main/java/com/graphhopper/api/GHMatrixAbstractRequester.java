@@ -1,10 +1,13 @@
 package com.graphhopper.api;
 
+import static com.graphhopper.api.GraphHopperMatrixWeb.KEY;
 import static com.graphhopper.api.GraphHopperMatrixWeb.MT_JSON;
+import static com.graphhopper.api.GraphHopperMatrixWeb.SERVICE_URL;
 import com.graphhopper.util.Helper;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +27,6 @@ public abstract class GHMatrixAbstractRequester {
 
     protected final Set<String> ignoreSet = new HashSet<String>(10);
     protected final String serviceUrl;
-    private String key;
     private OkHttpClient downloader;
 
     public GHMatrixAbstractRequester() {
@@ -45,11 +47,7 @@ public abstract class GHMatrixAbstractRequester {
         this.serviceUrl = serviceUrl;
 
         ignoreSet.add("key");
-    }
-
-    public GHMatrixAbstractRequester setKey(String key) {
-        this.key = key;
-        return this;
+        ignoreSet.add("service_url");
     }
 
     public abstract MatrixResponse route(GHMRequest request);
@@ -78,6 +76,18 @@ public abstract class GHMatrixAbstractRequester {
             return new JSONObject(str);
         } catch (Exception ex) {
             throw new RuntimeException("Cannot parse json " + str + " from " + url);
+        }
+    }
+
+    public List<Throwable> readUsableEntityError(List<String> outArraysList, JSONObject solution) {
+        boolean readWeights = outArraysList.contains("weights") && solution.has("weights");
+        boolean readDistances = outArraysList.contains("distances") && solution.has("distances");
+        boolean readTimes = outArraysList.contains("times") && solution.has("times");
+
+        if (!readWeights && !readDistances && !readTimes) {
+            return Collections.<Throwable>singletonList(new RuntimeException("Cannot find usable entity like weights, distances or times in JSON"));
+        } else {
+            return Collections.emptyList();
         }
     }
 
@@ -154,10 +164,11 @@ public abstract class GHMatrixAbstractRequester {
 
     protected String buildURLNoHints(String path, GHMRequest ghRequest) {
         // allow per request service URLs
-        String tmpServiceURL = ghRequest.getHints().get("service_url", serviceUrl);
+        String tmpServiceURL = ghRequest.getHints().get(SERVICE_URL, serviceUrl);
         String url = tmpServiceURL;
         url += path + "?";
 
+        String key = ghRequest.getHints().get(KEY, "");
         if (!Helper.isEmpty(key)) {
             url += "key=" + key;
         }

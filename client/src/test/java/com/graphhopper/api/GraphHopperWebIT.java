@@ -4,7 +4,10 @@ import com.graphhopper.PathWrapper;
 import com.graphhopper.GHRequest;
 import com.graphhopper.GHResponse;
 import com.graphhopper.util.Instruction;
+import com.graphhopper.util.InstructionList;
 import com.graphhopper.util.RoundaboutInstruction;
+import com.graphhopper.util.exceptions.PointNotFoundException;
+import com.graphhopper.util.exceptions.PointOutOfBoundsException;
 import com.graphhopper.util.shapes.GHPoint;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -82,6 +85,41 @@ public class GraphHopperWebIT {
         assertTrue("no roundabout in route?", counter > 0);
     }
 
+    @Test
+    public void testCannotFindPointException() {
+        GHRequest req = new GHRequest().
+                addPoint(new GHPoint(-4.214943, -130.078125)).
+                addPoint(new GHPoint(39.909736, -91.054687));
+
+        GHResponse res = gh.route(req);
+        assertTrue("no erros found?", res.hasErrors());
+        assertTrue(res.getErrors().get(0) instanceof PointNotFoundException);
+    }
+
+
+    @Test
+    public void testOutOfBoundsException() {
+        GHRequest req = new GHRequest().
+                addPoint(new GHPoint(-400.214943, -130.078125)).
+                addPoint(new GHPoint(39.909736, -91.054687));
+
+        GHResponse res = gh.route(req);
+        assertTrue("no erros found?", res.hasErrors());
+        assertTrue(res.getErrors().get(0) instanceof PointOutOfBoundsException);
+    }
+
+    @Test
+    public void readFinishInstruction() {
+        GHRequest req = new GHRequest().
+                addPoint(new GHPoint(52.261434, 13.485718)).
+                addPoint(new GHPoint(52.399067, 13.469238));
+
+        GHResponse res = gh.route(req);
+        InstructionList instructions = res.getBest().getInstructions();
+        String finishInstructionName = instructions.get(instructions.getSize()-1).getName();
+        assertEquals("Finish!", finishInstructionName);
+    }
+
     void isBetween(double from, double to, double expected) {
         assertTrue("expected value " + expected + " was smaller than limit " + from, expected >= from);
         assertTrue("expected value " + expected + " was bigger than limit " + to, expected <= to);
@@ -100,7 +138,7 @@ public class GraphHopperWebIT {
         }
 
         // ... only weight:
-        assertEquals(1056, res.getWeight(1, 2), 1);
+        assertEquals(1160, res.getWeight(1, 2), 5);
 
         req = AbstractGHMatrixWebTester.createRequest();
         req.addOutArray("weights");
@@ -108,6 +146,6 @@ public class GraphHopperWebIT {
         res = ghMatrix.route(req);
 
         assertEquals(9637, res.getDistance(1, 2), 5);
-        assertEquals(1056, res.getWeight(1, 2), 5);
+        assertEquals(1160, res.getWeight(1, 2), 5);
     }
 }

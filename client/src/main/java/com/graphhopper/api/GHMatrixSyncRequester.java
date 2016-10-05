@@ -1,6 +1,7 @@
 package com.graphhopper.api;
 
 import static com.graphhopper.api.GHMatrixAbstractRequester.encode;
+import com.graphhopper.util.Helper;
 import com.graphhopper.util.shapes.GHPoint;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -88,6 +89,10 @@ public class GHMatrixSyncRequester extends GHMatrixAbstractRequester {
 
             matrixResponse.addErrors(GraphHopperWeb.readErrors(getResponseJson));
             if (!matrixResponse.hasErrors()) {
+                matrixResponse.addErrors(readUsableEntityError(outArraysList, getResponseJson));
+            }
+
+            if (!matrixResponse.hasErrors()) {
                 fillResponseFromJson(ghRequest, outArraysList,
                         matrixResponse, getResponseJson, hasElevation);
             }
@@ -106,7 +111,7 @@ public class GHMatrixSyncRequester extends GHMatrixAbstractRequester {
                 pointsStr += "&";
             }
 
-            pointsStr += pointName + "=" + encode(p.lat + "," + p.lon);
+            pointsStr += pointName + "=" + encode(Helper.round6(p.lat) + "," + Helper.round6(p.lon));
         }
         return pointsStr;
     }

@@ -13,7 +13,7 @@ The latest development version is 0.8-SNAPSHOT
 
 ## License
 
-We chose the Apache License 2.0 to make it easy for you to embed GraphHopper in your products. We suggest to contribute back your changes, as GraphHopper will evolves fast, but of course this is not necessary.
+Apache License 2.0
 
 ## Usage
 
@@ -122,7 +122,7 @@ The client for the Route Optimization API is located in the folder "route-optimi
 
 ## Usage
 
-See the [examples](./tree/master/route-optimization/src/main/java/com/graphhopper/api/vrp/example) on how to use this client.
+See the [examples](./route-optimization/src/main/java/com/graphhopper/routeopt/examples) on how to use this client.
 
 ## Maven
 
@@ -139,3 +139,15 @@ The route optimization client is in the maven central repository, thus you can j
 ## Customization
 
 If you want to build it from source please follow the guide for java [here](https://github.com/graphhopper/directions-api-clients-route-optimization).
+
+# Geocoding
+
+## Usage
+
+See the [tests](./geocoding/src/test/java/io/swagger/client/api) on how to use this client.
+
+## Generate from Swagger
+
+```
+java -jar ../swagger-codegen-cli.jar generate -i geocoding_swagger.yaml -l java -o geocoding -c geocoding-config.json
+```
